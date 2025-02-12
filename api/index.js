@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const connectDB = require("./config/db");
 
 dotenv.config(); // Charger les variables d'environnement
 
@@ -14,13 +15,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Connexion à MongoDB
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("Connexion à MongoDB réussie"))
-  .catch((err) => console.error("Erreur de connexion à MongoDB:", err));
+connectDB();
 
 // Route par défaut
 app.get("/", (req, res) => {
