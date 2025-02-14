@@ -4,32 +4,31 @@ import bcrypt from "bcrypt";
 import Joi from "joi";
 
 const userSchema = new Schema({
-    mail: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    name: {
-        type: String, 
-        required: true,
-        unique: false
-    },
-    password: {
-        type: String, 
-        required: true
-    },
-    phone: {
-      type: String,
-      required: true,
-      unique: true
-    }
+  mail: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  name: {
+    type: String,
+    required: true,
+    unique: false,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 });
 
-
 // Hash password
-userSchema.pre('save', async function (next) {
+userSchema.pre("save", async function (next) {
   const user = this;
-  if (!user.isModified('password')) {
+  if (!user.isModified("password")) {
     return next();
   }
 
@@ -51,9 +50,14 @@ userSchema.methods.joiValidate = (user) => {
   const schema = Joi.object({
     mail: Joi.string().email().required(),
     username: Joi.string().min(8).max(30).required(),
-    password: Joi.string().min(8).max(30).regex(/[a-zA-Z0-9]{3,30}/).required(),
+    password: Joi.string()
+      .min(8)
+      .max(30)
+      .regex(/[a-zA-Z0-9]{3,30}/)
+      .required(),
   });
   return schema.validate(user);
 };
 
-export default mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
+export default User;

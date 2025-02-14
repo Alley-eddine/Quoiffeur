@@ -1,10 +1,9 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const connectDB = require("./config/db");
-const userController = require("./controllers/user");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import userRoutes from "./routes/userRoute.js";
+import appointmentRoutes from "./routes/appointmentRoute.js";
 
 dotenv.config(); // Charger les variables d'environnement
 
@@ -24,7 +23,12 @@ app.get("/", (req, res) => {
   res.send("API backend opérationnelle");
 });
 
-app.post("/register" , userController.register);
+// Routes utilisateur
+app.use("/register", userRoutes);
+
+// Routes pour les rendez-vous
+app.use("/appointments", appointmentRoutes);
+
 // Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
