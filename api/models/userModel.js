@@ -33,9 +33,32 @@ const loginUser = async (userData) => {
   }
 };
 
+const updateUser = async (userData) => {
+  try {
+    const user = await User.findOneAndUpdate({ _id: userData._id }, userData, {
+      new: true,
+    });
+    return user;
+  } catch (error) {
+    console.error(error);
+    return { error: "Update failed" };
+  }
+}
+
 const generateAuthToken = (user) => {
   const token = jwt.sign({ _id: user._id.toString() }, process.env.SECRET_KEY);
   return token;
 };
 
-export { createUser, loginUser, generateAuthToken };
+const deleteUser = async (userData) => {
+  try {
+    const user = await User.findOneAndDelete({ _id: userData._id });
+    return user;
+  }
+  catch (error) {
+    console.error(error);
+    return { error: "Delete failed" };
+  }
+}
+
+export { createUser, loginUser, generateAuthToken  , updateUser , deleteUser};
