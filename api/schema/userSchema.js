@@ -4,15 +4,15 @@ import bcrypt from "bcrypt";
 import Joi from "joi";
 
 const userSchema = new Schema({
-  mail: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   name: {
     type: String,
     required: true,
     unique: false,
+  },
+  mail: {
+    type: String,
+    required: true,
+    unique: true,
   },
   password: {
     type: String,

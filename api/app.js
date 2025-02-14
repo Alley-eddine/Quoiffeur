@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 });
 
 // Routes utilisateur
-app.use("/register", userRoutes);
+app.use("/users", userRoutes);
 
 // Routes pour les rendez-vous
 app.use("/appointments", appointmentRoutes);
