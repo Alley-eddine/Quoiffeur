@@ -7,9 +7,9 @@ const RegisterComponent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Empêche le rechargement de la page lors de la soumission du formulaire
     setIsSubmitting(true);
-    await handleSubmit();
+    await handleSubmit(e); // Passe l'événement à handleSubmit
     setIsSubmitting(false);
   };
 
