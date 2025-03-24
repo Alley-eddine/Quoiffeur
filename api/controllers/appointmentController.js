@@ -1,9 +1,11 @@
 import Appointment from "../models/appointmentModel.js";
+import User from "../schema/userSchema.js"; // Add this import
+import { sendAppointmentConfirmation } from "../mailer/confirmMail.js"; // Add this import
 
 // Créer un rendez-vous
 export const createAppointment = async (req, res) => {
   try {
-    const { appointmentDate, appointmentTime, customerName, customerPhone } = req.body;
+    const { appointmentDate, appointmentTime, customerName, customerPhone, customerId } = req.body;
 
     // Vérifiez les champs requis
     if (!appointmentDate || !appointmentTime || !customerName || !customerPhone) {
@@ -18,11 +20,27 @@ export const createAppointment = async (req, res) => {
 
     const newAppointment = new Appointment(req.body);
     await newAppointment.save();
+    
+    // Send confirmation email if customerId is provided
+    if (customerId) {
+      try {
+        const user = await User.findById(customerId);
+        if (user && user.mail) {
+          await sendAppointmentConfirmation(newAppointment, user.mail);
+        }
+      } catch (emailError) {
+        console.error("Erreur lors de l'envoi de l'email de confirmation:", emailError);
+        // We don't want to fail the appointment creation if email sending fails
+      }
+    }
+    
     res.status(201).json({ message: "Rendez-vous créé avec succès", data: newAppointment });
   } catch (error) {
     res.status(500).json({ message: "Erreur lors de la création du rendez-vous", error: error.message });
   }
 };
+
+// ... existing code ...
 
 export const updateAppointment = async (req, res) => {
   try {
