@@ -4,6 +4,20 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import appointmentRoutes from '../routes/appointmentRoute.js';
 import connectDB from '../config/db.js';
+import { sendAppointmentConfirmation } from '../mailer/confirmMail.js';
+import User from '../schema/userSchema.js';
+
+// Mock du module confirmMail
+jest.mock('../mailer/confirmMail.js', () => ({
+  sendAppointmentConfirmation: jest.fn().mockResolvedValue({ success: true, messageId: 'mock-message-id' })
+}));
+
+// Mock de User.findById
+jest.mock('../schema/userSchema.js', () => ({
+  default: {
+    findById: jest.fn()
+  }
+}));
 
 const app = express();
 app.use(express.json());
@@ -38,7 +52,13 @@ afterAll(async () => {
   await mongoServer.stop();
 });
 
+// Clear mocks between tests
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('Tests des routes des rendez-vous', () => {
+  // Existing test cases remain the same
   it('POST /api/appointments - devrait créer un rendez-vous avec succès', async () => {
     const newAppointment = {
       customerName: "John Doe",
@@ -56,6 +76,67 @@ describe('Tests des routes des rendez-vous', () => {
     expect(response.body.data.customerName).toBe("John Doe");
   });
 
+  // New test for email sending functionality
+  it('POST /api/appointments - devrait envoyer un email de confirmation quand customerId est fourni', async () => {
+    // Configure the mock for User.findById
+    const mockUser = { _id: 'user123', mail: 'test@example.com', name: 'Test User' };
+    User.findById.mockResolvedValue(mockUser);
+
+    const newAppointment = {
+      customerName: "Test User",
+      customerPhone: "1234567890",
+      appointmentDate: "2025-02-12",
+      appointmentTime: "10:00",
+      customerId: "user123"
+    };
+
+    const response = await request(app)
+      .post('/api/appointments')
+      .send(newAppointment);
+
+    // Check that the appointment was created successfully
+    expect(response.status).toBe(201);
+    
+    // Check that User.findById was called with the correct ID
+    expect(User.findById).toHaveBeenCalledWith("user123");
+    
+    // Check that sendAppointmentConfirmation was called with the correct parameters
+    expect(sendAppointmentConfirmation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customerName: "Test User",
+        appointmentDate: "2025-02-12",
+        appointmentTime: "10:00"
+      }),
+      'test@example.com'
+    );
+  });
+
+  it('POST /api/appointments - ne devrait pas échouer si l\'envoi de l\'email échoue', async () => {
+    // Configure the mock for User.findById
+    const mockUser = { _id: 'user123', mail: 'test@example.com', name: 'Test User' };
+    User.findById.mockResolvedValue(mockUser);
+    
+    // Make the email sending fail
+    sendAppointmentConfirmation.mockRejectedValueOnce(new Error('Email sending failed'));
+
+    const newAppointment = {
+      customerName: "Test User",
+      customerPhone: "1234567890",
+      appointmentDate: "2025-02-12",
+      appointmentTime: "10:00",
+      customerId: "user123"
+    };
+
+    const response = await request(app)
+      .post('/api/appointments')
+      .send(newAppointment);
+
+    // The appointment should still be created successfully
+    expect(response.status).toBe(201);
+    expect(response.body.message).toBe("Rendez-vous créé avec succès");
+  });
+
+  // Continue with the existing tests...
   it('POST /api/appointments - devrait retourner une erreur si les champs requis sont manquants', async () => {
     const newAppointment = {
       customerPhone: "1234567890",
@@ -126,9 +207,10 @@ describe('Tests des routes des rendez-vous', () => {
   });
 
   it('GET /api/appointments/user/:userId - devrait retourner une liste de rendez-vous pour un utilisateur spécifique', async () => {
-    const response = await request(app).get('/api/appointments/user/67e0036f84372cf248e9c767'); // Remplacez par un ID d'utilisateur valide
+    const response = await request(app).get('/api/appointments/user/67e0036f84372cf248e9c767'); 
     expect(response.status).toBe(200);
-    // Ajoutez d'autres assertions en fonction de la structure de votre réponse
+    // Array check
+    expect(Array.isArray(response.body)).toBe(true);
   });
 
   it('POST /api/appointments - devrait retourner une erreur si le créneau est complet', async () => {
