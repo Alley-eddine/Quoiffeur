@@ -1,73 +1,64 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-//WIP
+
 dotenv.config();
 
-// Créer un compte de test Ethereal
-let transporter;
-
-async function createTestAccount() {
-  const testAccount = await nodemailer.createTestAccount();
-  
-  transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    secure: false,
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass
-    }
-  });
-  
-  console.log('Compte de test Ethereal créé:', testAccount.user);
-  console.log('Consultez les emails sur:', testAccount.web);
-}
-
-// Initialiser le transporteur au démarrage
-createTestAccount();
+// Create reusable transporter object using SMTP transport
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 /**
- * Envoie un email de confirmation de rendez-vous
- * @param {Object} appointment - Le rendez-vous
- * @param {Object} customer - Le client
+ * Send confirmation email for a new appointment
+ * @param {Object} appointment - The appointment object
+ * @param {string} userEmail - The user's email address
+ * @returns {Promise} - The result of the email sending operation
  */
-export const sendAppointmentConfirmation = async (appointment, customer) => {
+export const sendAppointmentConfirmation = async (appointment, userEmail) => {
   try {
-    // S'assurer que le transporteur est initialisé
-    if (!transporter) {
-      await createTestAccount();
-    }
-    
+    // Format the date and time for better readability
+    const formattedDate = new Date(appointment.appointmentDate).toLocaleDateString();
+    const formattedTime = appointment.appointmentTime;
+
+    // Generate email content
     const mailOptions = {
-      from: '"Salon de Coiffure" <no-reply@votresalon.com>',
-      to: customer.mail,
+      from: `"Quoiffeur" <${process.env.EMAIL_USER}>`,
+      to: userEmail,
       subject: 'Confirmation de votre rendez-vous',
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-          <h2>Confirmation de rendez-vous</h2>
-          <p>Bonjour ${customer.name},</p>
-          <p>Votre rendez-vous a été confirmé pour:</p>
-          <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-radius: 5px;">
-            <p><strong>Date:</strong> ${appointment.appointmentDate}</p>
-            <p><strong>Heure:</strong> ${appointment.appointmentTime}</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+          <h2 style="color: #333; text-align: center;">Confirmation de Rendez-vous</h2>
+          <p>Bonjour ${appointment.customerName},</p>
+          <p>Votre rendez-vous a été confirmé avec les détails suivants :</p>
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <p><strong>Date:</strong> ${formattedDate}</p>
+            <p><strong>Heure:</strong> ${formattedTime}</p>
+            <p><strong>Nom:</strong> ${appointment.customerName}</p>
+            <p><strong>Téléphone:</strong> ${appointment.customerPhone}</p>
           </div>
-          <p>Nous avons hâte de vous accueillir!</p>
-          <p>L'équipe du Quoiffeur</p>
+          <p>Si vous souhaitez modifier ou annuler votre rendez-vous, veuillez nous contacter.</p>
+          <p>Merci d'avoir choisi nos services!</p>
+          <div style="text-align: center; margin-top: 20px; color: #777;">
+            <p>© ${new Date().getFullYear()} Quoiffeur. Tous droits réservés.</p>
+          </div>
         </div>
-      `
+      `,
     };
 
+    // Send the email
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email de confirmation envoyé:', info.messageId);
-    console.log('Prévisualiser l\'email:', nodemailer.getTestMessageUrl(info));
-    return info;
+    console.log('Email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('Erreur lors de l\'envoi de l\'email de confirmation:', error);
-    // Ne pas planter l'application si l'email échoue
-    return { error: error.message };
+    console.error('Error sending email:', error);
+    return { success: false, error: error.message };
   }
 };
 
-export default {
-  sendAppointmentConfirmation,
-};
+export default { sendAppointmentConfirmation };
