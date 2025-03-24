@@ -10,4 +10,6 @@ router.post("/update", userController.updateUser);
 
 router.post("/delete", userController.deleteUser);
 
+router.post("/login", userController.login);
+
 export default router;

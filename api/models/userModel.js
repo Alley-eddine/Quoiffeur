@@ -5,9 +5,15 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-const createUser = (userData) => {
-  const newUser = new User(userData);
-  newUser.save();
+const createUser = async (userData) => {
+  try {
+    const newUser = new User(userData);
+    await newUser.save();
+    const token = generateAuthToken(newUser);
+    return { user: newUser, token };
+  } catch (error) {
+    throw new Error(error.message);
+  }
 };
 
 const loginUser = async (userData) => {

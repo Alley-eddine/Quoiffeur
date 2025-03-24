@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
-const { MongoMemoryServer } = require("mongodb-memory-server");
-const connectDB = require("../config/db"); // Chemin vers ta fonction connectDB
+import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
+import connectDB from "../config/db";
+
 
 describe("MongoDB Connection", () => {
   let mongoServer;
