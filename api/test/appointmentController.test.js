@@ -5,11 +5,9 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import appointmentRoutes from '../routes/appointmentRoute.js';
 import connectDB from '../config/db.js';
 
-// Mock les modules avant les imports
 jest.mock('../schema/userSchema.js');
 jest.mock('../mailer/confirmMail.js');
 
-// Importer les modules mockés APRÈS avoir défini les mocks
 import User from '../schema/userSchema.js';
 import * as confirmMail from '../mailer/confirmMail.js';
 
@@ -18,14 +16,14 @@ app.use(express.json());
 app.use('/api', appointmentRoutes);
 
 let mongoServer;
-let appointmentId; // Variable pour stocker l'ID du rendez-vous
-// Créer un ObjectId valide pour les tests
+let appointmentId;
+
 const validObjectId = new mongoose.Types.ObjectId();
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
-  process.env.MONGO_URI = uri; // Remplace l'URI de la base réelle
+  process.env.MONGO_URI = uri;
   await connectDB();
 
   // Vérifier que la connexion est bien établie
@@ -43,7 +41,7 @@ beforeAll(async () => {
     .post('/api/appointments')
     .send(newAppointment);
 
-  appointmentId = response.body.data._id; // Stockez l'ID du rendez-vous
+  appointmentId = response.body.data._id;
 });
 
 afterAll(async () => {
@@ -93,7 +91,7 @@ describe('Tests des routes des rendez-vous', () => {
       customerName: "Test User",
       customerPhone: "1234567890",
       appointmentDate: "2025-02-12",
-      appointmentTime: "14:30", // Utiliser un créneau différent
+      appointmentTime: "14:30",
       customerId: validObjectId.toString()
     };
 
@@ -123,7 +121,6 @@ describe('Tests des routes des rendez-vous', () => {
     );
   });
 
-  // Autres tests inchangés...
   it('POST /api/appointments - devrait retourner une erreur si les champs requis sont manquants', async () => {
     const newAppointment = {
       customerPhone: "1234567890",
