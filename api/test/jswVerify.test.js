@@ -6,12 +6,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const app = express();
-app.use(express.json());
+describe('Tests du middleware jwtVerify', () => {
+  let app;
+  
+  beforeAll(() => {
+    app = express();
+    app.use(express.json());
+    app.get('/protected', jwtVerify, (req, res) => {
+      res.status(200).send('Protected route accessed');
+    });
+  });
 
-app.get('/protected', jwtVerify, (req, res) => {
-  res.status(200).send('Protected route accessed');
-});
 
 describe('Tests du middleware jwtVerify', () => {
   it('devrait retourner 401 si l\'en-tête d\'autorisation est manquant', async () => {
@@ -44,4 +49,5 @@ describe('Tests du middleware jwtVerify', () => {
     expect(response.status).toBe(200);
     expect(response.text).toBe('Protected route accessed');
   });
+});
 });
