@@ -1,12 +1,17 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("Connexion à MongoDB réussie");
+    // Suppression des options dépréciées
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
-    console.error("Erreur de connexion à MongoDB:", error.message);
-    process.exit(1); // Arrête le processus en cas d'échec
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
   }
 };
 

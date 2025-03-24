@@ -1,3 +1,8 @@
-import Appointment from "../schema/appointmentSchema.js"; // Import du modèle depuis le fichier de schéma
+import Appointment from "../schema/appointmentSchema.js";
+
+const newAppointment = (appointmentData) => {
+  const newAppointment = new Appointment(appointmentData);
+  newAppointment.save();
+}
 
 export default Appointment;

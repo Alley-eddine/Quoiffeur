@@ -3,10 +3,11 @@ import * as userModel from "../models/userModel.js";
 const register = async (req, res) => {
   const registerData = { ...req.body };
   try {
-    const newUser = await userModel.createUser(registerData);
+    const { user, token } = await userModel.createUser(registerData);
     res.status(200).send({
       message: "User successfully added",
-      data: newUser,
+      data: user,
+      token: token,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -20,7 +21,7 @@ const login = async (req, res) => {
       return res.status(401).json({ error: result.error });
     }
     res.header("Authorization", `Bearer ${result.token}`);
-    res.json({ message: "Logged in successfully", user: result.user });
+    res.json({ message: "Logged in successfully", user: result.user, token: result.token });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

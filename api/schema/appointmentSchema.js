@@ -1,5 +1,5 @@
-import { Schema } from "mongoose"; // Import Schema depuis mongoose
-import mongoose from "mongoose"; // Import mongoose pour utiliser model et connect
+import { Schema } from "mongoose";
+import mongoose from "mongoose";
 
 const appointmentSchema = new Schema(
   {
@@ -15,11 +15,22 @@ const appointmentSchema = new Schema(
       type: String,
       default: "Scheduled",
     },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    appointmentDate: {
+      type: String,
+      required: true,
+    },
+    appointmentTime: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
-// Création du modèle
 const Appointment = mongoose.model("Appointment", appointmentSchema);
 
-export default Appointment; // Export du modèle
+export default Appointment;
