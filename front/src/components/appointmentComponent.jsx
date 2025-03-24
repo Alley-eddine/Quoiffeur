@@ -47,7 +47,7 @@ const Appointments = () => {
           <ul>
             {upcomingAppointments.map((appointment) => (
               <li key={appointment._id} className="upcoming-appointment">
-                {appointment.appointmentDate} - {appointment.appointmentTime} with {appointment.customerName}
+                {appointment.appointmentDate} - {appointment.appointmentTime}
                 <button name='Supprimer' onClick={() => deleteAppointment(appointment._id)}>Supprimer</button>
               </li>
             ))}
